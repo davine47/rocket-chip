@@ -5,7 +5,7 @@ MODEL ?= TestHarness
 PROJECT ?= freechips.rocketchip.system
 CFG_PROJECT ?= $(PROJECT)
 CONFIG ?= $(CFG_PROJECT).DefaultConfig
-MILL ?= mill
+MILL ?= ./mill
 
 verilog:
 	cd $(base_dir) && $(MILL) emulator[freechips.rocketchip.system.TestHarness,$(CONFIG)].mfccompiler.compile
