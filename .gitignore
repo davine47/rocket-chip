@@ -1,5 +1,7 @@
 out/
 target/
+.idea/
+*.iml
 project/target
 docs/generated
 docs-target/

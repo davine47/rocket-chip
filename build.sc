@@ -5,16 +5,13 @@ import coursier.maven.MavenRepository
 import $file.`dependencies`.hardfloat.common
 import $file.`dependencies`.cde.common
 import $file.`dependencies`.diplomacy.common
-import $file.`dependencies`.chisel.build
 import $file.common
 
 object v {
   val scala = "2.13.12"
   // the first version in this Map is the mainly supported version which will be used to run tests
   val chiselCrossVersions = Map(
-    "6.7.0" -> (ivy"org.chipsalliance::chisel:6.7.0", ivy"org.chipsalliance:::chisel-plugin:6.7.0"),
-    // build from project from source
-    "source" -> (ivy"org.chipsalliance::chisel:99", ivy"org.chipsalliance:::chisel-plugin:99"),
+    "7.0.0" -> (ivy"org.chipsalliance::chisel:7.0.0-RC1", ivy"org.chipsalliance:::chisel-plugin:7.0.0-RC1"),
   )
   val mainargs = ivy"com.lihaoyi::mainargs:0.5.0"
   val json4sJackson = ivy"org.json4s::json4s-jackson:4.0.5"
@@ -25,15 +22,6 @@ object v {
   )
 }
 
-// Build form source only for dev
-object chisel extends Chisel
-
-trait Chisel
-  extends millbuild.dependencies.chisel.build.Chisel {
-  def crossValue = v.scala
-  override def millSourcePath = os.pwd / "dependencies" / "chisel"
-  def scalaVersion = T(v.scala)
-}
 
 object macros extends Macros
 
@@ -58,9 +46,9 @@ trait Hardfloat
 
   override def millSourcePath = os.pwd / "dependencies" / "hardfloat" / "hardfloat"
 
-  def chiselModule = Option.when(crossValue == "source")(chisel)
+  def chiselModule = None
 
-  def chiselPluginJar = T(Option.when(crossValue == "source")(chisel.pluginModule.jar()))
+  def chiselPluginJar = None
 
   def chiselIvy = Option.when(crossValue != "source")(v.chiselCrossVersions(crossValue)._1)
 
@@ -93,8 +81,8 @@ trait Diplomacy
   override def millSourcePath = os.pwd / "dependencies" / "diplomacy" / "diplomacy"
 
   // dont use chisel from source
-  def chiselModule = Option.when(crossValue == "source")(chisel)
-  def chiselPluginJar = T(Option.when(crossValue == "source")(chisel.pluginModule.jar()))
+  def chiselModule = None
+  def chiselPluginJar = None
 
   // use chisel from ivy
   def chiselIvy = Option.when(crossValue != "source")(v.chiselCrossVersions(crossValue)._1)
@@ -117,9 +105,9 @@ trait RocketChip
 
   override def millSourcePath = super.millSourcePath / os.up
 
-  def chiselModule = Option.when(crossValue == "source")(chisel)
+  def chiselModule = None
 
-  def chiselPluginJar = T(Option.when(crossValue == "source")(chisel.pluginModule.jar()))
+  def chiselPluginJar = None
 
   def chiselIvy = Option.when(crossValue != "source")(v.chiselCrossVersions(crossValue)._1)
 
@@ -185,42 +173,12 @@ trait Emulator extends Cross.Module2[String, String] {
     }
   }
 
-  object litexgenerate extends Module {
-    def compile = T {
-      os.proc("firtool",
-        generator.chirrtl().path,
-        s"--annotation-file=${generator.chiselAnno().path}",
-        "--disable-annotation-unknown",
-        "-dedup",
-        "-O=debug",
-        "--split-verilog",
-        "--preserve-values=named",
-        "--output-annotation-file=mfc.anno.json",
-        "--lowering-options=disallowLocalVariables",
-        s"-o=${T.dest}"
-      ).call(T.dest)
-      PathRef(T.dest)
-    }
-
-    def rtls = T {
-      os.read(compile().path / "filelist.f").split("\n").map(str =>
-        try {
-          os.Path(str)
-        } catch {
-          case e: IllegalArgumentException if e.getMessage.contains("is not an absolute path") =>
-            compile().path / str.stripPrefix("./")
-        }
-      ).filter(p => p.ext == "v" || p.ext == "sv").map(PathRef(_)).toSeq
-    }
-  }
-
   object mfccompiler extends Module {
     def compile = T {
       os.proc("firtool",
         generator.chirrtl().path,
         s"--annotation-file=${generator.chiselAnno().path}",
         "--disable-annotation-unknown",
-        "-dedup",
         "-O=debug",
         "--split-verilog",
         "--preserve-values=named",
