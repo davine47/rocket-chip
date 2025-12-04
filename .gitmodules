@@ -7,3 +7,6 @@
 [submodule "dependencies/diplomacy"]
 	path = dependencies/diplomacy
 	url = https://github.com/davine47/diplomacy.git
+[submodule "dependencies/chisel"]
+	path = dependencies/chisel
+	url = https://github.com/chipsalliance/chisel.git
