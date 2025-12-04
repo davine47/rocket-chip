@@ -4,7 +4,3 @@
 [submodule "dependencies/cde"]
 	path = dependencies/cde
 	url = https://github.com/chipsalliance/cde.git
-[submodule "dependencies/diplomacy"]
-	path = dependencies/diplomacy
-	url = https://github.com/chipsalliance/diplomacy.git
-	branch = master
